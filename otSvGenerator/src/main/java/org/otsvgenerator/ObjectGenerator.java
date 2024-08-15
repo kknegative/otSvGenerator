@@ -1,11 +1,10 @@
 package org.otsvgenerator;
 
 import org.otsvgenerator.entity.TimingPtsDO;
+import org.otsvgenerator.entity.request.BaseBatchGenerateRequest;
 
 import java.util.List;
 
-public interface ObjectGenerator {
-    List<TimingPtsDO> batchGenerate(Integer start, Integer end,
-                                    int bpm, int snap, int volume,
-                                    int beats, boolean useSoft, boolean inKiai);
+public interface ObjectGenerator<Q extends BaseBatchGenerateRequest> {
+    List<TimingPtsDO> batchGenerate(Q req);
 }

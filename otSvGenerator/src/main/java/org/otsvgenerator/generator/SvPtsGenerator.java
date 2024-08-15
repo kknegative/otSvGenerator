@@ -1,9 +1,5 @@
 package org.otsvgenerator.generator;
 
-import org.otsvgenerator.ObjectGenerator;
-import org.otsvgenerator.entity.TimingPtsDO;
-import org.otsvgenerator.parser.TimingPtsParser;
-
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -11,46 +7,42 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.otsvgenerator.ObjectGenerator;
+import org.otsvgenerator.entity.TimingPtsDO;
+import org.otsvgenerator.entity.request.BaseBatchGenerateRequest;
+import org.otsvgenerator.entity.request.SvBatchGenerateRequest;
+import org.otsvgenerator.parser.TimingPtsParser;
 
-public class SvPtsGenerator implements ObjectGenerator {
+
+public class SvPtsGenerator implements ObjectGenerator<SvBatchGenerateRequest> {
     @Override
-    public List<TimingPtsDO> batchGenerate(Integer start, Integer end,
-                                int bpm, int snap, int volume,
-                                int beats, boolean useSoft, boolean inKiai) {
-        // TODO: 摸了
-        return new ArrayList<>();
-    }
-
-    public List<TimingPtsDO> batchGenerate(Integer start, Integer end,
-                                int bpm, int snap, int volume,
-                                int beats, boolean useSoft,
-                                double svStart, double step, boolean inKiai) {
+    public List<TimingPtsDO> batchGenerate(SvBatchGenerateRequest svReq) {
         List<TimingPtsDO> timingPtsDOList = new ArrayList<>();
         // 这里本来就需要取整, 精度不需要太关心
         // beatLength保留16位
-        BigDecimal beatLength = new BigDecimal(60000).divide(new BigDecimal(bpm), new MathContext(15, RoundingMode.HALF_EVEN));
+        BigDecimal beatLength = new BigDecimal(60000).divide(new BigDecimal(svReq.getBpm()), new MathContext(15, RoundingMode.HALF_EVEN));
         // 区间取整使用HALF_EVEN
-        double currSV = svStart;
-        double curr = start;
-        while (curr <= end) {
+        double currSV = svReq.getSvStart();
+        double curr = svReq.getStart();
+        while (curr <= svReq.getEnd()) {
             TimingPtsDO timingPtsDO = new TimingPtsDO();
             // 绿线的beatLength为 -(100/sv)
             timingPtsDO.setBeatLength(new BigDecimal(-100).divide(new BigDecimal(currSV), 12, RoundingMode.HALF_UP));
             // 4/4 -> beats=4
-            timingPtsDO.setMeter(beats);
+            timingPtsDO.setMeter(svReq.getEnd());
             // 0 = beatmap default, 1 = normal, 2 = soft, 3 = drum
-            timingPtsDO.setSampleSet(useSoft ? 2 : 1);
+            timingPtsDO.setSampleSet(svReq.isUseSoft() ? 2 : 1);
             // default hitsound
             timingPtsDO.setSampleIndex(0);
-            timingPtsDO.setVolume(volume);
+            timingPtsDO.setVolume(svReq.getVolume());
             timingPtsDO.setInherited(0);
-            timingPtsDO.setEffects(inKiai ? 1 : 0);
+            timingPtsDO.setEffects(svReq.isInKiai() ? 1 : 0);
             // 小数向下取整
             timingPtsDO.setTimestamp(new BigDecimal(curr, new MathContext(0, RoundingMode.DOWN)).intValue());
             timingPtsDOList.add(timingPtsDO);
-            double interval = calculateTimestampFromSnap(beatLength, snap);
+            double interval = calculateTimestampFromSnap(beatLength, svReq.getSnap());
             curr += interval;
-            currSV += step;
+            currSV += svReq.getStep();
         }
         return timingPtsDOList;
     }
@@ -61,16 +53,11 @@ public class SvPtsGenerator implements ObjectGenerator {
         return result.doubleValue();
     }
 
-    public List<TimingPtsDO> flyingBarlineGenerator(List<Integer> timestamp,
-                                int bpm, int snap, int volume,
-                                int beats, boolean useSoft,
-                                double flySV, double originSV, boolean inKiai) {
+    public List<TimingPtsDO> flyingBarlineGenerator(List<SvBatchGenerateRequest> reqList) {
         ArrayList<TimingPtsDO> timingPtsDOList = new ArrayList<>();
-        for (Integer time : timestamp) {
-            List<TimingPtsDO> flyingBarlines = batchGenerate(time, time,
-                    bpm, snap, volume, beats, useSoft, flySV, 0, inKiai);
-            List<TimingPtsDO> initialBarlines = batchGenerate(time + 1, time + 1,
-                    bpm, snap, volume, beats, useSoft, originSV, 0, inKiai);
+        for (SvBatchGenerateRequest req : reqList) {
+            List<TimingPtsDO> flyingBarlines = batchGenerate(req);
+            List<TimingPtsDO> initialBarlines = batchGenerate(req);
             timingPtsDOList.addAll(flyingBarlines);
             timingPtsDOList.addAll(initialBarlines);
         }
@@ -82,18 +69,27 @@ public class SvPtsGenerator implements ObjectGenerator {
         SvPtsGenerator svPtsGenerator = new SvPtsGenerator();
         TimingPtsGenerator timingPtsGenerator = new TimingPtsGenerator();
 //        TimestampParser timestampParser = new TimestampParser();
-        List<Integer> bookMarks = Arrays.stream("4785,8594,16690,20023,23832,91924,92401,107639,108115,108591,109067,110020,110972,111924,112877,113829,114782,149542,153352"
+        List<BaseBatchGenerateRequest> reqList = Arrays.stream("4785,8594,16690,20023,23832,91924,92401,107639,108115,108591,109067,110020,110972,111924,112877,113829,114782,149542,153352"
                     .split(","))
                 .map(Integer::parseInt)
+                .map(ts -> {
+                    BaseBatchGenerateRequest req = new BaseBatchGenerateRequest();
+                    req.setStart(ts);
+                    req.setEnd(ts);
+                    req.setBpm(126);
+                    req.setSnap(1);
+                    req.setVolume(70);
+                    req.setBeats(4);
+                    req.setUseSoft(true);
+                    req.setInKiai(false);
+                    return req;
+                })
                 .collect(Collectors.toList());
         List<TimingPtsDO> total = new ArrayList<>();
-        for (Integer bookMark : bookMarks) {
-            List<TimingPtsDO> timingPtsDOS = timingPtsGenerator.batchGenerate(bookMark, bookMark, 126,
-                    1, 70, 4, true, false);
+        for (BaseBatchGenerateRequest req : reqList) {
+            List<TimingPtsDO> timingPtsDOS = timingPtsGenerator.batchGenerate(req);
             total.addAll(timingPtsDOS);
         }
-//        List<TimingPtsDO> timingPtsDOS = svPtsGenerator.flyingBarlineGenerator(bookMarks, 126,
-//                1, 70, 4, true, 1.5, 0.75, false);
 
         System.out.println(parser.serialize(total));
     }
