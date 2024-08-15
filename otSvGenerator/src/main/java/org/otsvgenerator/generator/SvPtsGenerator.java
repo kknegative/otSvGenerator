@@ -1,10 +1,8 @@
-package org.example.generator;
+package org.otsvgenerator.generator;
 
-import com.google.common.collect.ImmutableList;
-import org.example.ObjectGenerator;
-import org.example.entity.TimingPtsDO;
-import org.example.parser.TimestampParser;
-import org.example.parser.TimingPtsParser;
+import org.otsvgenerator.ObjectGenerator;
+import org.otsvgenerator.entity.TimingPtsDO;
+import org.otsvgenerator.parser.TimingPtsParser;
 
 import java.math.BigDecimal;
 import java.math.MathContext;

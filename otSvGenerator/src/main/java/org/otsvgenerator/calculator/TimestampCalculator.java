@@ -1,4 +1,4 @@
-package org.example.calculator;
+package org.otsvgenerator.calculator;
 
 public class TimestampCalculator {
 }

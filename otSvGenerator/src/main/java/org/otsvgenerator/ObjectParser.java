@@ -1,6 +1,6 @@
-package org.example;
+package org.otsvgenerator;
 
-import org.example.entity.BaseDO;
+import org.otsvgenerator.entity.BaseDO;
 
 import java.util.List;
 

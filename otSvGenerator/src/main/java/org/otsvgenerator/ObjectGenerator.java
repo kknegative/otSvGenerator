@@ -1,6 +1,6 @@
-package org.example;
+package org.otsvgenerator;
 
-import org.example.entity.TimingPtsDO;
+import org.otsvgenerator.entity.TimingPtsDO;
 
 import java.util.List;
 

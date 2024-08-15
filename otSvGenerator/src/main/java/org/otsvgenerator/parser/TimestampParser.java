@@ -1,4 +1,4 @@
-package org.example.parser;
+package org.otsvgenerator.parser;
 
 public class TimestampParser {
     private static final int MILLIS_PER_SECOND = 1000;

@@ -1,15 +1,13 @@
-package org.example.generator;
+package org.otsvgenerator.generator;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.example.ObjectGenerator;
-import org.example.entity.TimingPtsDO;
-import org.example.parser.TimingPtsParser;
+import org.otsvgenerator.ObjectGenerator;
+import org.otsvgenerator.entity.TimingPtsDO;
 
 
 public class TimingPtsGenerator implements ObjectGenerator {

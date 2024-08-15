@@ -1,9 +1,9 @@
-package org.example.parser;
+package org.otsvgenerator.parser;
 
-import org.example.ObjectParser;
-import org.example.entity.BaseDO;
-import org.example.entity.HitObjectsDO;
-import org.example.entity.TimingPtsDO;
+import org.otsvgenerator.ObjectParser;
+import org.otsvgenerator.entity.BaseDO;
+import org.otsvgenerator.entity.HitObjectsDO;
+import org.otsvgenerator.entity.TimingPtsDO;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

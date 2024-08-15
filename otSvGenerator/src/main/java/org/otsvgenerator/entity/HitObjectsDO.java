@@ -1,4 +1,4 @@
-package org.example.entity;
+package org.otsvgenerator.entity;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

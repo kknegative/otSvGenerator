@@ -1,11 +1,11 @@
-package org.example;
+package org.otsvgenerator;
 
-import org.example.entity.BaseDO;
-import org.example.entity.TimingPtsDO;
-import org.example.generator.SvPtsGenerator;
-import org.example.generator.TimingPtsGenerator;
-import org.example.parser.TimestampParser;
-import org.example.parser.TimingPtsParser;
+import org.otsvgenerator.entity.BaseDO;
+import org.otsvgenerator.entity.TimingPtsDO;
+import org.otsvgenerator.generator.SvPtsGenerator;
+import org.otsvgenerator.generator.TimingPtsGenerator;
+import org.otsvgenerator.parser.TimestampParser;
+import org.otsvgenerator.parser.TimingPtsParser;
 
 import java.util.ArrayList;
 import java.util.Comparator;
