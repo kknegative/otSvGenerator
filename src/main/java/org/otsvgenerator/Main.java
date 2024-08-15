@@ -1,8 +1,5 @@
 package org.otsvgenerator;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import org.otsvgenerator.entity.BaseDO;
 import org.otsvgenerator.entity.TimingPtsDO;
 import org.otsvgenerator.entity.request.BaseBatchGenerateRequest;
@@ -12,6 +9,10 @@ import org.otsvgenerator.generator.TimingPtsGenerator;
 import org.otsvgenerator.parser.TimestampParser;
 import org.otsvgenerator.parser.TimingPtsParser;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,19 +23,19 @@ public class Main {
         BaseBatchGenerateRequest req = new BaseBatchGenerateRequest();
         req.setStart(start);
         req.setEnd(end);
-        req.setBpm(126);
+        req.setBpm(new BigDecimal(126));
         req.setSnap(16);
         req.setVolume(70);
         req.setBeats(4);
         req.setUseSoft(true);
         req.setInKiai(true);
-
         List<TimingPtsDO> redLines = timingPtsGenerator.batchGenerate(req);
+
         SvPtsGenerator svPtsGenerator = new SvPtsGenerator();
         SvBatchGenerateRequest svReq = new SvBatchGenerateRequest();
         svReq.setStart(start);
         svReq.setEnd(end);
-        svReq.setBpm(126);
+        svReq.setBpm(new BigDecimal(126));
         svReq.setSnap(16);
         svReq.setVolume(70);
         svReq.setBeats(4);
@@ -44,11 +45,12 @@ public class Main {
         svReq.setStep(-0.02);
         List<TimingPtsDO> greenLines = svPtsGenerator.batchGenerate(svReq);
 
-        TimingPtsParser timingPtsParser = new TimingPtsParser();
         List<TimingPtsDO> allObjects = new ArrayList<>();
         allObjects.addAll(redLines);
         allObjects.addAll(greenLines);
         allObjects.sort(Comparator.comparing(BaseDO::getTimestamp));
+
+        TimingPtsParser timingPtsParser = new TimingPtsParser();
         String s = timingPtsParser.serialize(allObjects);
         System.out.println(s);
     }
