@@ -17,12 +17,17 @@ public class HitObjectsParser implements ObjectParser<HitObjectsDO> {
         List<HitObjectsDO> hitObjectsDOList = new ArrayList<>();
         for (String pt : timingPts) {
             String[] timingAttrs = pt.split(",");
+            if (timingAttrs.length != 6) {
+                // not a hitcircle
+                continue;
+            }
             HitObjectsDO hitObjectsDO = new HitObjectsDO();
             hitObjectsDO.setX(Integer.parseInt(timingAttrs[0]));
             hitObjectsDO.setY(Integer.parseInt(timingAttrs[1]));
             hitObjectsDO.setTimestamp(Integer.parseInt(timingAttrs[2]));
             hitObjectsDO.setType(Integer.parseInt(timingAttrs[3]));
-            hitObjectsDO.setObjectParams(timingAttrs[4]);
+            hitObjectsDO.setHitSound(Integer.parseInt(timingAttrs[4]));
+            // hitclrcles do not have objectParams
             hitObjectsDO.setHitSample(timingAttrs[5]);
             hitObjectsDOList.add(hitObjectsDO);
         }
@@ -30,32 +35,23 @@ public class HitObjectsParser implements ObjectParser<HitObjectsDO> {
     }
 
     @Override
-    public List<HitObjectsDO> moveAllObjectsBy(List<HitObjectsDO> timingPts, int offset) {
-        for (BaseDO pt : timingPts) {
+    public List<HitObjectsDO> moveAllObjectsBy(List<HitObjectsDO> hitObjects, int offset) {
+        for (BaseDO pt : hitObjects) {
             pt.setTimestamp(pt.getTimestamp() + offset);
         }
-        return timingPts;
+        return hitObjects;
     }
 
     @Override
-    public String serialize (List<HitObjectsDO> timingPtsDOList) {
+    public String serialize (List<HitObjectsDO> hitObjectsDOList) {
         StringBuilder sbd = new StringBuilder();
-        Field[] fields = TimingPtsDO.class.getDeclaredFields();
-
-        for (BaseDO pt : timingPtsDOList) {
-            try {
-                for (Field field : fields) {
-                    field.setAccessible(true);
-                    Object value = field.get(pt);
-                    // 将所有字段用","拼接
-                    if (value != null) {
-                        sbd.append(value).append(",");
-                    }
-                }
-                sbd.deleteCharAt(sbd.length() - 1);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
+        for (HitObjectsDO pt : hitObjectsDOList) {
+            sbd.append(pt.getX()).append(",");
+            sbd.append(pt.getY()).append(",");
+            sbd.append(pt.getTimestamp()).append(",");
+            sbd.append(pt.getType()).append(",");
+            sbd.append(pt.getHitSound()).append(",");
+            sbd.append(pt.getHitSample());
             sbd.append("\n");
         }
         return sbd.toString();
