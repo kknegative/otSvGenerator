@@ -33,12 +33,18 @@ public class SvPtsGenerator implements ObjectGenerator<SvBatchGenerateRequest> {
         }
         return timingPtsDOList;
     }
-
-    public List<TimingPtsDO> flyingBarlineGenerator(List<SvBatchGenerateRequest> reqList) {
+    
+    public List<TimingPtsDO> flyingBarlineGenerator(List<SvBatchGenerateRequest> reqList, int flyingSV, int initialSV) {
         ArrayList<TimingPtsDO> timingPtsDOList = new ArrayList<>();
         for (SvBatchGenerateRequest req : reqList) {
-            List<TimingPtsDO> flyingBarlines = batchGenerate(req);
-            List<TimingPtsDO> initialBarlines = batchGenerate(req);
+            SvBatchGenerateRequest flyingReq = new SvBatchGenerateRequest();
+            flyingReq.setSvStart(flyingSV);
+            flyingReq.setStart(req.getStart() + 1);
+            flyingReq.setEnd(req.getStart() + 1);
+            SvBatchGenerateRequest initialReq = new SvBatchGenerateRequest();
+            initialReq.setSvStart(initialSV);
+            List<TimingPtsDO> flyingBarlines = batchGenerate(flyingReq);
+            List<TimingPtsDO> initialBarlines = batchGenerate(initialReq);
             timingPtsDOList.addAll(flyingBarlines);
             timingPtsDOList.addAll(initialBarlines);
         }
