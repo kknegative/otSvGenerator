@@ -1,7 +1,6 @@
-My own sv generator
+My SV generator for happier mapping experience
 
 TODO List:
-- 绿线去重
-- 给定起始&结束SV, 批量生成物件
-- 红线自适应的渐变SV(maybe?)
+- remove duplicate Inherited Points
+- Given initialSV and endingSV, generate Inherited Points that automatically adapt to various BPM
 - GUI(maybe)
