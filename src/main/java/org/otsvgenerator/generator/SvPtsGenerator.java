@@ -9,6 +9,7 @@ import org.otsvgenerator.parser.TimingPtsParser;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,37 +18,40 @@ public class SvPtsGenerator implements ObjectGenerator<SvBatchGenerateRequest> {
     @Override
     public List<TimingPtsDO> batchGenerate(SvBatchGenerateRequest svReq) {
         List<TimingPtsDO> timingPtsDOList = new ArrayList<>();
-        // 这里本来就需要取整, 精度不需要太关心
-        // beatLength保留16位
+        // beatLength has precision of 16 digits, rounded using HALF_EVEN
         BigDecimal beatLength = TimestampCalculator.getBeatLength(svReq.getBpm());
-        // 区间取整使用HALF_EVEN
         double currSV = svReq.getSvStart();
         double curr = svReq.getStart();
         while (curr <= svReq.getEnd()) {
             TimingPtsDO timingPtsDO = svReq.convertTimingPtsDO(currSV, curr);
             timingPtsDOList.add(timingPtsDO);
             BigDecimal interval = TimestampCalculator.getIntervalFromSnap(beatLength, svReq.getSnap());
-            // TODO: 可能会有精度问题, 暂时不想动脑了
+            // TODO: to confirm if there would be precision issues
             curr += interval.doubleValue();
             currSV += svReq.getStep();
         }
         return timingPtsDOList;
     }
-    
-    public List<TimingPtsDO> flyingBarlineGenerator(List<SvBatchGenerateRequest> reqList, int flyingSV, int initialSV) {
+
+    public List<TimingPtsDO> generateFlyingTimingPts(List<SvBatchGenerateRequest> reqList,
+                                                   double flyingSV, double initialSV,
+                                                   int flyingOffset, int initialOffset) {
         ArrayList<TimingPtsDO> timingPtsDOList = new ArrayList<>();
         for (SvBatchGenerateRequest req : reqList) {
-            SvBatchGenerateRequest flyingReq = new SvBatchGenerateRequest();
+            SvBatchGenerateRequest flyingReq = req.clone();
             flyingReq.setSvStart(flyingSV);
-            flyingReq.setStart(req.getStart() + 1);
-            flyingReq.setEnd(req.getStart() + 1);
-            SvBatchGenerateRequest initialReq = new SvBatchGenerateRequest();
+            flyingReq.setStart(req.getStart() + flyingOffset);
+            flyingReq.setEnd(req.getStart() + flyingOffset);
+            SvBatchGenerateRequest initialReq = req.clone();
             initialReq.setSvStart(initialSV);
+            initialReq.setStart(req.getStart() + initialOffset);
+            initialReq.setEnd(req.getStart() + initialOffset);
             List<TimingPtsDO> flyingBarlines = batchGenerate(flyingReq);
             List<TimingPtsDO> initialBarlines = batchGenerate(initialReq);
             timingPtsDOList.addAll(flyingBarlines);
             timingPtsDOList.addAll(initialBarlines);
         }
+        timingPtsDOList.sort(Comparator.comparing(TimingPtsDO::getTimestamp));
         return timingPtsDOList;
     }
 
@@ -55,29 +59,25 @@ public class SvPtsGenerator implements ObjectGenerator<SvBatchGenerateRequest> {
         TimingPtsParser parser = new TimingPtsParser();
         SvPtsGenerator svPtsGenerator = new SvPtsGenerator();
 //        TimestampParser timestampParser = new TimestampParser();
-        List<SvBatchGenerateRequest> reqList = Arrays.stream("4785,8594,16690,20023,23832,91924,92401,107639,108115,108591,109067,110020,110972,111924,112877,113829,114782,149542,153352"
+        List<SvBatchGenerateRequest> reqList = Arrays.stream("39030,40230,41430,42630,43830,45030,46230,47430,48630,49830,51030,52230,53430,54630,55830,57030,58230,59430,60630,61830,63030,64230,65430,66630,67830,69030,70230,71430,72630,73830,75030,76230,77430,78630,79830,81030,82230,83430,84630,85830,87030,88230,89430,90630,91830,93030,94230,95430,96630,97830,99030,100230,101430,102630,103830,105030,106230,107430,108630,109830,111030,112230,113430,114630,153630,163230"
                     .split(","))
                 .map(Integer::parseInt)
                 .map(ts -> {
                     SvBatchGenerateRequest req = new SvBatchGenerateRequest();
                     req.setStart(ts);
                     req.setEnd(ts);
-                    req.setBpm(new BigDecimal(126));
+                    req.setBpm(new BigDecimal(200));
                     req.setSnap(1);
-                    req.setVolume(70);
+                    req.setVolume(85);
                     req.setBeats(4);
-                    req.setUseSoft(true);
+                    req.setUseSoft(false);
                     req.setInKiai(false);
-                    req.setSvStart(1.25);
-                    req.setStep(-0.02);
+                    req.setSvStart(1.3);
+                    req.setStep(0);
                     return req;
                 })
                 .collect(Collectors.toList());
-        List<TimingPtsDO> total = new ArrayList<>();
-        for (SvBatchGenerateRequest req : reqList) {
-            List<TimingPtsDO> timingPtsDOS = svPtsGenerator.batchGenerate(req);
-            total.addAll(timingPtsDOS);
-        }
+        List<TimingPtsDO> total = svPtsGenerator.generateFlyingTimingPts(reqList, 1.5, 0.75, -3,3);
 
         System.out.println(parser.serialize(total));
     }

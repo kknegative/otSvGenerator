@@ -11,12 +11,18 @@ import java.math.RoundingMode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class SvBatchGenerateRequest extends BaseBatchGenerateRequest {
-    // 起始sv
+public class SvBatchGenerateRequest extends BaseBatchGenerateRequest implements Cloneable {
+    // initial SV
     private double svStart;
-    // 每条线之间的间距
+    // SV difference between each timing point
     private double step;
 
+    /**
+     * given SV and current timestamp, generate TimingPt Object
+     * @param currSV
+     * @param curr
+     * @return
+     */
     public TimingPtsDO convertTimingPtsDO(double currSV, double curr) {
         TimingPtsDO timingPtsDO = new TimingPtsDO();
         timingPtsDO.setBeatLength(TimestampCalculator.getSVBeatLength(currSV));
@@ -32,5 +38,19 @@ public class SvBatchGenerateRequest extends BaseBatchGenerateRequest {
         timingPtsDO.setEffects(isInKiai() ? 1 : 0);
         timingPtsDO.setTimestamp(new BigDecimal(curr, new MathContext(0, RoundingMode.HALF_DOWN)).intValue());
         return timingPtsDO;
+    }
+
+    @Override
+    public SvBatchGenerateRequest clone() {
+        try {
+            SvBatchGenerateRequest svBatchGenerateRequest = (SvBatchGenerateRequest) super.clone();
+            // mutable factors
+            svBatchGenerateRequest.setSvStart(this.getSvStart());
+            svBatchGenerateRequest.setStart(this.getStart());
+            svBatchGenerateRequest.setEnd(this.getEnd());
+            return svBatchGenerateRequest;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

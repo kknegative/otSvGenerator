@@ -18,6 +18,12 @@ public class BaseBatchGenerateRequest {
     private boolean useSoft;
     private boolean inKiai;
 
+    /**
+     * generate Object based on beatlength and current timestamp
+     * @param beatLength
+     * @param curr
+     * @return
+     */
     public TimingPtsDO convertTimingPtsDO(BigDecimal beatLength, double curr) {
         TimingPtsDO timingPtsDO = new TimingPtsDO();
         timingPtsDO.setBeatLength(beatLength);
